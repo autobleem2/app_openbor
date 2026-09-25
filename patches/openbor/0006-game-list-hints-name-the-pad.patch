@@ -1,0 +1,74 @@
+--- a/engine/sdl/menu.c
++++ b/engine/sdl/menu.c
+@@ -95,12 +95,27 @@
+ 	return pControl();
+ }
+ 
++#if !defined(ANDROID) && !defined(_WIN32)
++// AutoBleem: a hint's button - the bound key's own name, "X" rather than "P1 X" to fit where upstream's
++// one-letter keyboard names were
++static const char *hintKey(int key)
++{
++	const char *name = control_getkeyname(key);
++	return strncmp(name, "P1 ", 3) == 0 ? name + 3 : name;
++}
++#endif
++
+ static void getAllLogs()
+ {
+ 	ptrdiff_t i, j, k;
+ 	for(i=0; i<2; i++)
+ 	{
++#if defined(ANDROID) || defined(_WIN32)
+ 		logfile[i].buf = readFromLogFile(i);
++#else
++		// AutoBleem: no log viewer, so the logs are not read either (the 2019 port: "logs not to be read")
++		logfile[i].buf = NULL;
++#endif
+ 		if(logfile[i].buf != NULL)
+ 		{
+ 			logfile[i].pos = malloc(++logfile[i].rows * sizeof(int));
+@@ -357,7 +372,10 @@
+ 
+ 		case FLAG_JUMP:
+ 			//drawLogs();
++#if defined(ANDROID) || defined(_WIN32)
+ 			status = 3;
++#endif
++			// AutoBleem: no log viewer from the game list, as in the 2019 PlayStation Classic port
+ 			break;
+ 
+ 		default:
+@@ -551,6 +569,12 @@
+ 	printText((isWide ? 150 : 84),(isWide ? 251 : 226), WHITE, 0, 0, "A2: BGM Player");
+ 	printText((isWide ? 270 : 164),(isWide ? 251 : 226), WHITE, 0, 0, "J: View Logs");
+ 	printText((isWide ? 390 : 244),(isWide ? 251 : 226), WHITE, 0, 0, "S: Quit Game");
++#elif !defined(_WIN32)
++	// AutoBleem: the buttons they are bound to - the pad's, on the PlayStation Classic layout - as the 2019
++	// PlayStation Classic port showed them (upstream hard-codes the keyboard's A/S/D/F since 2021)
++	printText((isWide ? 23 : 4),(isWide ? 251 : 226), WHITE, 0, 0, "%s: Start Game", hintKey(savedata.keys[0][SDID_ATTACK]));
++	printText((isWide ? 150 : 84),(isWide ? 251 : 226), WHITE, 0, 0, "%s: BGM Player", hintKey(savedata.keys[0][SDID_ATTACK2]));
++	printText((isWide ? 384 : 244),(isWide ? 251 : 226), WHITE, 0, 0, "%s: Quit Game", hintKey(savedata.keys[0][SDID_SPECIAL]));
+ #else
+ 	//Kratus (13-03-21) changed the function "control_getkeyname" (Windows) to a direct string, because it will always use the default keys and can't be changed
+ 	printText((isWide ? 23 : 4),(isWide ? 251 : 226), WHITE, 0, 0, "A: Start Game");
+@@ -616,11 +640,19 @@
+ 	printText((isWide ? 390 : 244),(isWide ? 251 : 226), WHITE, 0, 0, "S: Exit Player");
+ #else
+ 	//Kratus (13-03-21) changed the function "control_getkeyname" (Windows) to a direct string, because it will always use the default keys and can't be changed
++#ifndef _WIN32
++	// AutoBleem: the bound buttons, as in the game list
++	printText((isWide ? 23 : 4),(isWide ? 251 : 226), WHITE, 0, 0, "%s: %s", hintKey(savedata.keys[0][SDID_ATTACK]), bgmPlay ? "Stop" : "Play");
++	printText((isWide ? 150 : 84),(isWide ? 251 : 226), WHITE, 0, 0, "%s: %s", hintKey(savedata.keys[0][SDID_ATTACK2]), bgmLoop ? "Repeat On" : "Repeat Off");
++	printText((isWide ? 270 : 164),(isWide ? 251 : 226), WHITE, 0, 0, "%s: %s", hintKey(savedata.keys[0][SDID_JUMP]), bgmCycle ? "Cycle On" : "Cycle Off");
++	printText((isWide ? 384 : 244),(isWide ? 251 : 226), WHITE, 0, 0, "%s: Exit Player", hintKey(savedata.keys[0][SDID_SPECIAL]));
++#else
+ 	printText((isWide ? 23 : 4),(isWide ? 251 : 226), WHITE, 0, 0, "A: %s", bgmPlay ? "Stop" : "Play");
+ 	printText((isWide ? 150 : 84),(isWide ? 251 : 226), WHITE, 0, 0, "S: %s", bgmLoop ? "Repeat On" : "Repeat Off");
+ 	printText((isWide ? 270 : 164),(isWide ? 251 : 226), WHITE, 0, 0, "D: %s", bgmCycle ? "Cycle On" : "Cycle Off");
+ 	printText((isWide ? 390 : 244),(isWide ? 251 : 226), WHITE, 0, 0, "F: Exit Player");
+ #endif
++#endif
+ 	//CRxTRDude - Fixed the placement of these texts and appropriately changed the site for Chrono Crash
+ 	printText((isWide ? 320 : 188),(isWide ? 175 : 158), BLACK, 0, 0, "www.chronocrash.com");
+ 	printText((isWide ? 322 : 190),(isWide ? 185 : 168), BLACK, 0, 0, "www.SenileTeam.com");
