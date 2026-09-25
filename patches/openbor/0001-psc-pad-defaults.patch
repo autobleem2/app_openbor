@@ -1,0 +1,143 @@
+diff --git a/engine/openbor.c b/engine/openbor.c
+index 825eb1d6..a022af9a 100644
+--- a/engine/openbor.c
++++ b/engine/openbor.c
+@@ -2507,6 +2507,9 @@ void clearbuttons(int player)
+         savedata.keys[0][SDID_SCREENSHOT] = CONTROL_DEFAULT1_SCREENSHOT;
+         #ifdef SDL
+             //savedata.keys[0][SDID_ESC]       = CONTROL_DEFAULT1_ESC;
++            // AutoBleem: player 1 plays with the first pad when there is one (the keyboard's defaults below
++            // still work alongside)
++            control_pad_default_keys(0, savedata.keys[0]);
+         #endif
+ 
+         /* *************** SET DEFAULT KEYS *************** */
+@@ -2554,6 +2557,8 @@ void clearbuttons(int player)
+         savedata.keys[1][SDID_SCREENSHOT] = CONTROL_NONE;
+         #ifdef SDL
+             //savedata.keys[1][SDID_ESC]       = CONTROL_DEFAULT2_ESC;
++            // AutoBleem: player 2 plays with the second pad when there is one
++            control_pad_default_keys(1, savedata.keys[1]);
+         #endif
+     }
+     else if (player == 2)
+diff --git a/engine/sdl/control.c b/engine/sdl/control.c
+index 1a135de4..5302fd19 100644
+--- a/engine/sdl/control.c
++++ b/engine/sdl/control.c
+@@ -442,7 +442,13 @@ void open_joystick(int i)
+     joysticks[i].NumAxes = SDL_JoystickNumAxes(joystick[i]);
+     joysticks[i].NumButtons = SDL_JoystickNumButtons(joystick[i]);
+ 
+-    strcpy(joysticks[i].Name, SDL_JoystickName(i));
++    // AutoBleem: SDL2's SDL_JoystickName() takes the joystick, not its index - given the index it returns NULL
++    // and the strcpy crashed as soon as a pad was there (only the virtual pad's preload answered anyway)
++    {
++        const char *name = SDL_JoystickNameForIndex(i);
++        strncpy(joysticks[i].Name, name ? name : "Joystick", sizeof(joysticks[i].Name) - 1);
++        joysticks[i].Name[sizeof(joysticks[i].Name) - 1] = '\0';
++    }
+ 
+     joystick_haptic[i] = SDL_HapticOpenFromJoystick(joystick[i]);
+     if (joystick_haptic[i] != NULL)
+@@ -988,3 +994,87 @@ void control_rumble(int port, int ratio, int msec)
+     #endif
+ }
+ 
++
++/*
++AutoBleem: the pad's default keys for a player, instead of the keyboard's - OpenBOR's desktop defaults are the
++keyboard, so a pad did nothing until it was set up in a menu the pad could not reach. The PlayStation Classic
++port's layout (2019): Cross attack 1, Circle attack 2, Square attack 3, Triangle attack 4, L1 jump, R1 special,
++Start start, L2 the menu (Esc), Select screenshot; the D-pad moves. An input's number is OpenBOR's: after the
++pad's base, its buttons, then two per axis (negative, positive), then four per hat (up, right, down, left).
++Returns 0, leaving keys alone, when there is no such pad.
++*/
++#ifdef _WIN32
++// Windows has no virtual pad: SDL's own mapping of the pad says where each button is
++static int pad_bind_key(SDL_GameControllerButtonBind bind, int base, int buttons, int axes, int positive)
++{
++    switch (bind.bindType)
++    {
++    case SDL_CONTROLLER_BINDTYPE_BUTTON:
++        return base + bind.value.button;
++    case SDL_CONTROLLER_BINDTYPE_AXIS:
++        return base + buttons + 2 * bind.value.axis + (positive ? 1 : 0);
++    case SDL_CONTROLLER_BINDTYPE_HAT:
++        return base + buttons + 2 * axes + 4 * bind.value.hat.hat +
++               ((bind.value.hat.hat_mask & SDL_HAT_UP) ? 0 : (bind.value.hat.hat_mask & SDL_HAT_RIGHT) ? 1 :
++                (bind.value.hat.hat_mask & SDL_HAT_DOWN) ? 2 : 3);
++    default:
++        return CONTROL_NONE;
++    }
++}
++#endif
++
++int control_pad_default_keys(int pad, int *keys)
++{
++    int base, buttons, axes;
++    if (pad < 0 || pad >= JOY_LIST_TOTAL || joystick[pad] == NULL)
++    {
++        return 0;
++    }
++    base = JOY_LIST_FIRST + 1 + pad * JOY_MAX_INPUTS;
++    buttons = joysticks[pad].NumButtons;
++    axes = joysticks[pad].NumAxes;
++#ifdef _WIN32
++    {
++        SDL_GameController *gc = SDL_IsGameController(pad) ? SDL_GameControllerOpen(pad) : NULL;
++        if (gc == NULL)
++        {
++            return 0;
++        }
++        keys[SDID_MOVEUP]     = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_DPAD_UP), base, buttons, axes, 0);
++        keys[SDID_MOVEDOWN]   = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_DPAD_DOWN), base, buttons, axes, 1);
++        keys[SDID_MOVELEFT]   = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_DPAD_LEFT), base, buttons, axes, 0);
++        keys[SDID_MOVERIGHT]  = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_DPAD_RIGHT), base, buttons, axes, 1);
++        keys[SDID_ATTACK]     = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_A), base, buttons, axes, 1);
++        keys[SDID_ATTACK2]    = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_B), base, buttons, axes, 1);
++        keys[SDID_ATTACK3]    = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_X), base, buttons, axes, 1);
++        keys[SDID_ATTACK4]    = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_Y), base, buttons, axes, 1);
++        keys[SDID_JUMP]       = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_LEFTSHOULDER), base, buttons, axes, 1);
++        keys[SDID_SPECIAL]    = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER), base, buttons, axes, 1);
++        keys[SDID_START]      = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_START), base, buttons, axes, 1);
++        keys[SDID_SCREENSHOT] = pad_bind_key(SDL_GameControllerGetBindForButton(gc, SDL_CONTROLLER_BUTTON_BACK), base, buttons, axes, 1);
++        keys[SDID_ESC]        = pad_bind_key(SDL_GameControllerGetBindForAxis(gc, SDL_CONTROLLER_AXIS_TRIGGERLEFT), base, buttons, axes, 1);
++        SDL_GameControllerClose(gc);
++    }
++#else
++    // the virtual pad in its PlayStation Classic layout (the App's pad.ini says virtual = psc): Triangle 0,
++    // Circle 1, Cross 2, Square 3, L2 4, R2 5, L1 6, R1 7, Select 8, Start 9, the D-pad on axes 0 and 1
++    if (buttons < 10 || axes < 2)
++    {
++        return 0;
++    }
++    keys[SDID_MOVEUP]     = base + buttons + 2 * 1;
++    keys[SDID_MOVEDOWN]   = base + buttons + 2 * 1 + 1;
++    keys[SDID_MOVELEFT]   = base + buttons;
++    keys[SDID_MOVERIGHT]  = base + buttons + 1;
++    keys[SDID_ATTACK]     = base + 2;
++    keys[SDID_ATTACK2]    = base + 1;
++    keys[SDID_ATTACK3]    = base + 3;
++    keys[SDID_ATTACK4]    = base + 0;
++    keys[SDID_JUMP]       = base + 6;
++    keys[SDID_SPECIAL]    = base + 7;
++    keys[SDID_START]      = base + 9;
++    keys[SDID_SCREENSHOT] = base + 8;
++    keys[SDID_ESC]        = base + 4;
++#endif
++    return 1;
++}
+diff --git a/engine/sdl/control.h b/engine/sdl/control.h
+index 8bada73f..8185f424 100644
+--- a/engine/sdl/control.h
++++ b/engine/sdl/control.h
+@@ -143,6 +143,8 @@ typedef struct{
+ 
+ void open_joystick(int i);
+ void close_joystick(int i);
++// AutoBleem: a pad's default keys for a player (the PlayStation Classic layout); 0 when there is no such pad
++int control_pad_default_keys(int pad, int *keys);
+ void control_exit();
+ void control_init(int joy_enable);
+ int control_usejoy(int enable);

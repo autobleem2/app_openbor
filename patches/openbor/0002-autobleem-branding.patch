@@ -1,0 +1,41 @@
+diff --git a/engine/openbor.c b/engine/openbor.c
+index 825eb1d6..a14c627d 100644
+--- a/engine/openbor.c
++++ b/engine/openbor.c
+@@ -46094,6 +46094,10 @@ void display_credits()
+         font_printf(col1,  s + v * m, 0, 0, "PS Vita");
+         font_printf(col2, s + v * m, 0, 0, "Plombo"); ++m;
+ 
++        // AutoBleem: the PlayStation Classic port (2019) and the AutoBleem App
++        font_printf(col1,  s + v * m, 0, 0, "Playstation Classic");
++        font_printf(col2, s + v * m, 0, 0, "Screemer, KMFDManic"); ++m;
++
+         update(2, 0);
+ 
+         done |= (_time > finishtime);
+diff --git a/engine/sdl/menu.c b/engine/sdl/menu.c
+index c7babbb8..ca0ad183 100644
+--- a/engine/sdl/menu.c
++++ b/engine/sdl/menu.c
+@@ -22,6 +22,9 @@
+ #include "../resources/OpenBOR_Logo_320x240_png.h"
+ #include "../resources/OpenBOR_Menu_480x272_png.h"
+ #include "../resources/OpenBOR_Menu_320x240_png.h"
++// AutoBleem: the start-up logo and the menu background of the AutoBleem App (made by tools/make_branding.py)
++#include "../resources/autobleem_logo_480x272.png.h"
++#include "../resources/autobleem_menu_480x272.png.h"
+ // CRxTRDude - Added the log screen pngs
+ #include "../resources/logviewer_480x272_png.h"
+ #include "../resources/logviewer_320x240_png.h"
+@@ -477,9 +480,9 @@ static void initMenu(int type)
+ 
+ 	// Read Logo or Menu from Array.
+ 	if(!type)
+-		bgscreen = pngToScreen(isWide ? (void*) openbor_logo_480x272_png.data : (void*) openbor_logo_320x240_png.data);
++		bgscreen = pngToScreen(isWide ? (void*) autobleem_logo_480x272_png.data : (void*) openbor_logo_320x240_png.data);
+ 	else
+-		bgscreen = pngToScreen(isWide ? (void*) openbor_menu_480x272_png.data : (void*) openbor_menu_320x240_png.data);
++		bgscreen = pngToScreen(isWide ? (void*) autobleem_menu_480x272_png.data : (void*) openbor_menu_320x240_png.data);
+ 	// CRxTRDude - Initialize log screen images
+ 	logscreen = pngToScreen(isWide ? (void*) logviewer_480x272_png.data : (void*) logviewer_320x240_png.data);
+ 

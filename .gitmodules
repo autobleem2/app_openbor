@@ -1,0 +1,21 @@
+[submodule "upstream/openbor"]
+	path = upstream/openbor
+	url = https://github.com/DCurrent/openbor.git
+[submodule "upstream/zlib"]
+	path = upstream/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "upstream/libpng"]
+	path = upstream/libpng
+	url = https://github.com/pnggroup/libpng.git
+[submodule "upstream/ogg"]
+	path = upstream/ogg
+	url = https://github.com/xiph/ogg.git
+[submodule "upstream/vorbis"]
+	path = upstream/vorbis
+	url = https://github.com/xiph/vorbis.git
+[submodule "upstream/libvpx"]
+	path = upstream/libvpx
+	url = https://github.com/webmproject/libvpx.git
+[submodule "upstream/SDL2_gfx"]
+	path = upstream/SDL2_gfx
+	url = https://github.com/ferzkopp/SDL2_gfx.git
