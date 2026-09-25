@@ -1,0 +1,28 @@
+--- a/engine/sdl/control.c
++++ b/engine/sdl/control.c
+@@ -473,6 +473,25 @@
+     {
+         strcpy(joysticks[i].KeyName[j], PC_GetJoystickKeyName(i, j));
+     }
++    #ifndef _WIN32
++    // AutoBleem: on Linux the virtual pad shows the game the PlayStation Classic's own layout (pad.ini:
++    // Triangle 0, Circle 1, Cross 2, Square 3, L2 4, R2 5, L1 6, R1 7, Select 8, Start 9, the D-pad on axes 0
++    // and 1) - the names on screen are the pad's, as the 2019 PlayStation Classic port had them
++    if(joysticks[i].NumButtons >= 10 && joysticks[i].NumAxes >= 2)
++    {
++        static const char *const psc_buttons[10] = {"^", "O", "X", "[]", "L2", "R2", "L1", "R1", "Select", "Start"};
++        static const char *const psc_axes[4] = {"Left", "Right", "Up", "Down"};
++        for(j = 0; j < 10; j++)
++        {
++            snprintf(joysticks[i].KeyName[1 + j], sizeof(joysticks[i].KeyName[0]), "P%d %s", i + 1, psc_buttons[j]);
++        }
++        for(j = 0; j < 4; j++)
++        {
++            snprintf(joysticks[i].KeyName[1 + joysticks[i].NumButtons + j], sizeof(joysticks[i].KeyName[0]), "P%d %s",
++                     i + 1, psc_axes[j]);
++        }
++    }
++    #endif
+     #endif
+ 
+     return;
