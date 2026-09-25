@@ -1,0 +1,45 @@
+--- a/engine/openbor.c
++++ b/engine/openbor.c
+@@ -46001,13 +46001,42 @@
+ 
+ 
+ 
++#ifdef SDL
++// AutoBleem: does a player's key set name any pad input at all? A set with none (a fresh start - the pads
++// were not open yet when clearbuttons() ran - or a Saves/default.cfg written that way) gets the pad defaults.
++static int keys_have_pad_binding(const int *keys)
++{
++    int i;
++    for(i = SDID_MOVEUP; i <= SDID_SCREENSHOT; i++)
++    {
++        if(keys[i] >= JOY_LIST_FIRST)
++        {
++            return 1;
++        }
++    }
++    return 0;
++}
++#endif
++
+ void apply_controls()
+ {
+     int p;
+ 
+     for(p = 0; p < MAX_PLAYERS; p++)
+     {
++#ifdef SDL
++        // AutoBleem: the pad defaults once the pads are open (apply_controls() runs after control_init(); the
++        // menu's loadsettings() ran before it), and Esc on the pad's own button (L2) when the set has one -
++        // upstream binds Esc to the keyboard's Escape only, which left no way into the menu or out of the list
++        if(p < 2 && !keys_have_pad_binding(savedata.keys[p]))
++        {
++            control_pad_default_keys(p, savedata.keys[p]);
++        }
++        control_setkey(playercontrolpointers[p], FLAG_ESC,
++                       savedata.keys[p][SDID_ESC] >= JOY_LIST_FIRST ? savedata.keys[p][SDID_ESC] : CONTROL_ESC);
++#else
+         control_setkey(playercontrolpointers[p], FLAG_ESC,        CONTROL_ESC);
++#endif
+         control_setkey(playercontrolpointers[p], FLAG_MOVEUP,     savedata.keys[p][SDID_MOVEUP]);
+         control_setkey(playercontrolpointers[p], FLAG_MOVEDOWN,   savedata.keys[p][SDID_MOVEDOWN]);
+         control_setkey(playercontrolpointers[p], FLAG_MOVELEFT,   savedata.keys[p][SDID_MOVELEFT]);
