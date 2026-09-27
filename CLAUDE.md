@@ -41,7 +41,8 @@ ports" - the rules; `app_opentyrian`'s CLAUDE.md is the template). The 2019 Play
 | `resources/app/` | `app.ini` (`Exec=bin/{key}/OpenBOR`, no `Args`, no `Lib` - SDL2 is the launcher's or the system's), `pad.ini` (`virtual = psc`), `readme.txt`, `icon.png`, `Paks/` (games to ship go here) |
 | `resources/branding/` | the menu art (2019) and the logo `tools/make_branding.py --art` draws |
 | `ci/build.sh` | `native|psc|rpi|rpi64|pcusb|win|all`: per target the codecs into `build_<key>/deps` (kept while `deps/.stamp` - the submodule commits, compiler, flags - matches; libvpx is most of a clean build), then a copy of the engine, the patches, a `version.h` written in place of upstream's git-reading `version.sh`, `tools/make_branding.py <engine>` (embeds the two PNGs as makeheader-style headers, stdlib only - the image has no Pillow), CMake. libvpx: `armv7-linux-gcc` (psc, rpi), `arm64-linux-gcc` (rpi64), `generic-gnu` on x86 (the image has no nasm/yasm), VP8 decoder only. The package carries `LICENSE-openbor.txt` and `licences/` (the codecs' notices). |
-| `tools/store_item.py`, `tools/check_psc_binary.sh`, `tools/check_needed.sh`, `tools/zip_app.py` | as in the other ports (`check_needed.sh` also allows `psapi.dll`); `zip_app.py` keeps the empty `Paks/`/`Saves/` folders |
+| `tools/store_item.py`, `tools/zip_app.py` | as in the other ports; `zip_app.py` keeps the empty `Paks/`/`Saves/` folders |
+| `/opt/ab/tools/check_psc_binary.sh`, `/opt/ab/tools/check_needed.sh` (autobleem-build image) | no longer vendored (APPS-6) - as in the other ports (`check_needed.sh` also allows `psapi.dll`) |
 
 ## Things to know
 
