@@ -59,4 +59,5 @@ ports" - the rules; `app_opentyrian`'s CLAUDE.md is the template). The 2019 Play
   image, `autobleem-build:latest`); `master` follows the released commit. The Store gets it by hand:
   `gh release download <tag>`, `tools/store_item.py` per zip, then autobleem-repo's
   `repo_publish.sh store <key> dist/store/<key>/*`.
-- **Not yet run**: on a console, a Pi or the PC stick (the tester checklist, section 12).
+- **Run on the owner's console** (2026-09-26, `7533-4`: starts and plays - autobleem-main's `docs/todo.md`
+  APPS-1); not yet on a Pi or the PC stick (the tester checklist, section 12).
