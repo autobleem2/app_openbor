@@ -44,6 +44,7 @@ def main(argv):
     item = {
         "id": "app/openbor",
         "kind": "app",
+        "category": "games",
         "title": ITEM["title"],
         "version": version,
         "author": ITEM["author"],

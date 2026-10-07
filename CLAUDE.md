@@ -10,7 +10,7 @@ ports" - the rules; `app_opentyrian`'s CLAUDE.md is the template). The 2019 Play
 
 ## The owner's decisions for this port (2026-09-25)
 
-- **Upstream**: `DCurrent/openbor` at tag **`v7533`** (`5c826144`, 2024-01-01), the package version `7533-4`
+- **Upstream**: `DCurrent/openbor` at tag **`v7533`** (`5c826144`, 2024-01-01), the package version `7533-5`
   (`VERSION`). Later builds (master, the 4.0 line past 7533) build **64-bit only** - the console, the 32-bit Pi and
   the PC stick are 32-bit - so 7533 is the last build every target can run.
 - **Branding** (Amiberry and OpenBOR keep ours): the 2019 port's **menu background** (`resources/branding/
@@ -55,7 +55,8 @@ ports" - the rules; `app_opentyrian`'s CLAUDE.md is the template). The 2019 Play
 - **Build on the server**: sync with MSYS2's rsync (excluding `/build_*`, `/dist`), then
   `docker run --rm -u $(id -u):$(id -g) -v $PWD:/src -w /src ghcr.io/autobleem2/autobleem-build:develop ci/build.sh all`;
   remove `build_*`/`dist` there afterwards.
-- **Releases**: a `v<version>` tag (`v7533-4`) builds a stable GitHub release with the five zips (in the release
+- **Category** (the owner, 2026-10-07): every `app.ini` carries `Category=games` (the launcher's Apps tab files an App by it: games, emulators, tools, media, other - any case) and `tools/store_item.py` writes `"category": "games"` into the Store item.
+- **Releases**: a `v<version>` tag (`v7533-5`) builds a stable GitHub release with the five zips (in the release
   image, `autobleem-build:latest`); `master` follows the released commit. The Store gets it by hand:
   `gh release download <tag>`, `tools/store_item.py` per zip, then autobleem-repo's
   `repo_publish.sh store <key> dist/store/<key>/*`.
